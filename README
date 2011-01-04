@@ -1,0 +1,8 @@
+Simple EVEapi to maildir exporter.
+
+Helps you read eve mail with yout favourite mail client.
+
+Can be used with crontab:
+*/30 * * * * python /path/to/EveMail.py
+
+Requirements: eveapi( https://github.com/ntt/eveapi )
