@@ -84,8 +84,8 @@ class Message:
         self.api       = eveapi.EVEAPIConnection()
         self.msgId     = headers.messageID
         self.sender    = self.idToName( headers.senderID )
-        self.recepient = self.idToName( ','.join( [ 
-            str( headers.toCorpOrAllianceID ), 
+        self.recepient = self.idToName( ','.join( [
+            str( headers.toCorpOrAllianceID ),
             str( headers.toCharacterIDs ) ] ) )
         self.date      = headers.sentDate
         self.subj      = headers.title
@@ -104,6 +104,7 @@ class Message:
         ''' Gets names by ids '''
         if len( str( idString ) ) == 0:
             return ''
+        idString = re.sub( ',$', '', str( idString ) )
         charList = self.api.eve.CharacterName( ids = idString )
 
         nameList = []
@@ -115,7 +116,7 @@ class Message:
 
 if __name__ == '__main__':
     CharInfo = [ 12345,         # your account-id here
-            "YOUR_FULL_APIKEY", # limited apikey wont work 
+            "YOUR_FULL_APIKEY", # limited apikey wont work
             "charname" ]        # which character's mail to read
 
     Watcher = EveMail( CharInfo, '/var/spool/mail/something/maildir' ) # path to maildir of your choice
