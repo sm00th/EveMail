@@ -1,8 +1,9 @@
-''' EVEapi to maildir '''
+''' Module for exporting eveMail from api to maildir '''
 
 import eveapi
 import mailbox
 import calendar
+import re
 from email.utils import formatdate, parsedate
 from email.mime.text import MIMEText
 
@@ -16,7 +17,10 @@ class EveMail:
         self.mailList = []
 
     def __del__( self ):
-        self.inbox.close()
+        try:
+            self.inbox.close()
+        except AttributeError:
+            pass
 
     def getCharacter( self, name ):
         ''' Gets character object for this account by name '''
@@ -33,12 +37,12 @@ class EveMail:
         ''' Returns date of the last message in mailbox '''
         lastMsgTime = 0
         if len( self.inbox ) > 0:
-            lastMsgTime = calendar.timegm( 
-                    parsedate( 
-                        sorted( 
-                            self.inbox.itervalues(), 
-                            key=lambda item: ( parsedate( item['Date'] ), item ) 
-                        )[-1]['Date'] 
+            lastMsgTime = calendar.timegm(
+                    parsedate(
+                        sorted(
+                            self.inbox.itervalues(),
+                            key=lambda item: ( parsedate( item['Date'] ), item )
+                        )[-1]['Date']
                     ) )
         return lastMsgTime
 
@@ -47,7 +51,7 @@ class EveMail:
         mailList = self.auth.char.MailMessages( characterID = self.char.characterID )
 
         gotTill = self.lastMessageTime()
-        
+
         for message in mailList.messages:
             if message.sentDate > gotTill:
                 self.mailList.append( Message( message ) )
@@ -57,8 +61,8 @@ class EveMail:
         idsString = ','.join( str( message.msgId ) for message in self.mailList )
         if len( idsString ) < 1:
             return
-        mailList = self.auth.char.MailBodies( 
-                characterID = self.char.characterID, 
+        mailList = self.auth.char.MailBodies(
+                characterID = self.char.characterID,
                 ids = idsString )
         bodyHash = {}
         for message in mailList.messages:
@@ -119,6 +123,9 @@ if __name__ == '__main__':
             "YOUR_FULL_APIKEY", # limited apikey wont work
             "charname" ]        # which character's mail to read
 
-    Watcher = EveMail( CharInfo, '/var/spool/mail/something/maildir' ) # path to maildir of your choice
-    Watcher.getMailList()
-    Watcher.dumpMail()
+    try:
+        Watcher = EveMail( CharInfo, '/var/spool/mail/something/maildir' ) # path to maildir of your choice
+        Watcher.getMailList()
+        Watcher.dumpMail()
+    except eveapi.Error as exc:
+        print 'Failed to fetch new mail: %s' % ( exc )
